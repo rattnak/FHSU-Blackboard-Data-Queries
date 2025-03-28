@@ -17,5 +17,5 @@ INNER JOIN cdm_lms.person_course lpc  -- Join person_course to filter by course_
     AND lpc.course_role = 'I'  -- Only instructors
 INNER JOIN cdm_lms.person p  -- Join person to get first and last name
     ON p.id = lpc.person_id
-WHERE lt.start_date > '2024-08-01'
+WHERE lt.start_date > '{date}'
 ORDER BY lt.start_date, lc.name;
