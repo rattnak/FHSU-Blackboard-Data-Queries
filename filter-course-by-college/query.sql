@@ -33,7 +33,7 @@ INNER JOIN cdm_lms.institution_hierarchy_course ihc
     ON lc.id = ihc.course_id  -- Link course to institution hierarchy
 INNER JOIN cdm_lms.institution_hierarchy ih 
     ON ih.id = ihc.institution_hierarchy_id  -- Link institution hierarchy to course
-WHERE lt.start_date > '2024-08-01'
+WHERE lt.start_date BETWEEN '2024-08-01' AND '2025-04-01'
   AND SPLIT_PART(ih.hierarchy_name_seq, '||', 4) = 'College of Education'
 ORDER BY lt.start_date, lc.name;
 

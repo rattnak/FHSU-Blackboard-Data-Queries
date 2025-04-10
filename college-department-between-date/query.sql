@@ -35,5 +35,5 @@ INNER JOIN cdm_lms.institution_hierarchy ih
     ON ih.id = ihc.institution_hierarchy_id   -- Link institution hierarchy to course
 
 -- replace {date} with the actual date
-WHERE lt.start_date > '{date}'
+WHERE lt.start_date BETWEEN '2024-08-01' AND '2025-04-01'
 ORDER BY lt.start_date, lc.name;
