@@ -32,8 +32,8 @@ INNER JOIN cdm_lms.person p  -- Join person to get first and last name
 INNER JOIN cdm_lms.institution_hierarchy_course ihc 
     ON lc.id = ihc.course_id  -- Link course to institution hierarchy
 INNER JOIN cdm_lms.institution_hierarchy ih 
-    ON ih.id = ihc.institution_hierarchy_id   -- Link institution hierarchy to course
-
+    ON ih.id = ihc.institution_hierarchy_id  -- Link institution hierarchy to course
+WHERE p.email NOT LIKE '%.se@fhsu.edu' -- Exclude SE 
+AND lt.name != 'TILT Master' --Exclude TILT Master
 -- replace {date} with the actual date
-WHERE lt.start_date BETWEEN '2024-08-01' AND '2025-04-01'
-ORDER BY lt.start_date, lc.name;
+AND  lt.start_date BETWEEN '2024-07-31' AND '2025-04-01' ORDER BY lt.start_date, lc.name;
