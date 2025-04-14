@@ -4,34 +4,33 @@ SELECT
     lc.design_mode,
     lt.start_date,
     lt.name AS term,
-    CONCAT(p.first_name, ' ', p.last_name) AS instructor_name,  -- Combine first and last name for instructor
+    COUNT(DISTINCT p.id) AS instructor_count,
+    LISTAGG(DISTINCT CONCAT(p.first_name, ' ', p.last_name), ', ') 
+        WITHIN GROUP (ORDER BY CONCAT(p.first_name, ' ', p.last_name)) AS instructors,
+    LISTAGG(DISTINCT p.email, ', ') 
+        WITHIN GROUP (ORDER BY p.email) AS instructor_emails,
     CASE
         WHEN ih.hierarchy_name_seq IS NOT NULL THEN SPLIT_PART(ih.hierarchy_name_seq, '||', 2)
-        ELSE 'Unknown'  -- Level 1: 'Fort Hays State University'
-    END AS institutional_hierarchy_level_1,  -- University: 'Fort Hays State University'
+        ELSE 'Unknown'
+    END AS institutional_hierarchy_level_1,
     CASE
         WHEN ih.hierarchy_name_seq IS NOT NULL THEN SPLIT_PART(ih.hierarchy_name_seq, '||', 3)
-        ELSE 'Unknown'  -- Level 2: College
-    END AS institutional_hierarchy_level_2,  -- College
+        ELSE 'Unknown'
+    END AS institutional_hierarchy_level_2,
     CASE
         WHEN ih.hierarchy_name_seq IS NOT NULL THEN SPLIT_PART(ih.hierarchy_name_seq, '||', 4)
-        ELSE 'Unknown'  -- Level 3: Department
-    END AS institutional_hierarchy_level_3,  -- Department
+        ELSE 'Unknown'
+    END AS institutional_hierarchy_level_3,
     CASE
         WHEN ih.hierarchy_name_seq IS NOT NULL THEN SPLIT_PART(ih.hierarchy_name_seq, '||', 5)
-        ELSE 'Unknown'  -- Level 4: Major
-    END AS institutional_hierarchy_level_4  
+        ELSE 'Unknown'
+    END AS institutional_hierarchy_level_4
 FROM cdm_lms.course lc
-INNER JOIN cdm_lms.term lt 
-    ON lt.id = lc.term_id
-INNER JOIN cdm_lms.person_course lpc  -- Join person_course to filter by course_role
-    ON lpc.course_id = lc.id 
-    AND lpc.course_role = 'I'  -- Only instructors
-INNER JOIN cdm_lms.person p  -- Join person to get first and last name
-    ON p.id = lpc.person_id
-INNER JOIN cdm_lms.institution_hierarchy_course ihc 
-    ON lc.id = ihc.course_id  -- Link course to institution hierarchy
-INNER JOIN cdm_lms.institution_hierarchy ih 
-    ON ih.id = ihc.institution_hierarchy_id  -- Link institution hierarchy to course
-WHERE p.email NOT LIKE '%.se@fhsu.edu' -- Exclude SE 
-AND lt.name != 'TILT Master'; --Exclude TILT Master
+INNER JOIN cdm_lms.term lt ON lt.id = lc.term_id
+INNER JOIN cdm_lms.person_course lpc ON lpc.course_id = lc.id AND lpc.course_role = 'I'
+INNER JOIN cdm_lms.person p ON p.id = lpc.person_id
+INNER JOIN cdm_lms.institution_hierarchy_course ihc ON lc.id = ihc.course_id
+INNER JOIN cdm_lms.institution_hierarchy ih ON ih.id = ihc.institution_hierarchy_id
+GROUP BY
+    lc.id, lc.name, lc.design_mode, lt.start_date, lt.name, ih.hierarchy_name_seq
+ORDER BY course_name;
