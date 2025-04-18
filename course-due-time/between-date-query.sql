@@ -3,8 +3,9 @@ SELECT
     lc.name AS course_name,
     lc.design_mode,
     lt.start_date,
-    lg.due_time,
     lt.name AS term,
+    lg.name AS assignment_name,
+    lg.due_time,
     COUNT(DISTINCT p.id) AS instructor_count,
     LISTAGG(DISTINCT CONCAT(p.first_name, ' ', p.last_name), ', ') 
         WITHIN GROUP (ORDER BY CONCAT(p.first_name, ' ', p.last_name)) AS instructors,
@@ -35,5 +36,5 @@ INNER JOIN cdm_lms.institution_hierarchy_course ihc ON lc.id = ihc.course_id
 INNER JOIN cdm_lms.institution_hierarchy ih ON ih.id = ihc.institution_hierarchy_id
 WHERE lt.start_date BETWEEN '2024-07-31' AND '2025-04-01'
 GROUP BY
-    lc.id, lc.name, lc.design_mode, lt.start_date, lt.name, ih.hierarchy_name_seq, lg.due_time
-ORDER BY lt.start_date, lc.name, lg.due_time ASC;
+    lc.id, lc.name, lc.design_mode, lt.start_date, lt.name, lg.name, lg.due_time, ih.hierarchy_name_seq
+ORDER BY lg.due_time ASC;
