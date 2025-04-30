@@ -19,7 +19,7 @@ SELECT
         WITHIN GROUP (ORDER BY p.email) AS instructor_emails,
     CASE
         WHEN ih.hierarchy_name_seq IS NOT NULL THEN SPLIT_PART(ih.hierarchy_name_seq, '||', 2)
-        ELSE 'Unknown'
+        ELSE 'Unknown' 
     END AS institutional_hierarchy_level_1,
     CASE
         WHEN ih.hierarchy_name_seq IS NOT NULL THEN SPLIT_PART(ih.hierarchy_name_seq, '||', 3)
