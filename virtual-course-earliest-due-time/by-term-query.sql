@@ -41,4 +41,4 @@ WHERE lt.name = 'S2025'
     AND lc.name LIKE '%_V%_%' 
 GROUP BY
     lc.id, lc.name, lc.design_mode, lt.start_date, ea.assignment_name, ea.due_time, lt.name, ih.hierarchy_name_seq
-ORDER BY earliest_due_time, lc.name;
+ORDER BY earliest_due_time;
