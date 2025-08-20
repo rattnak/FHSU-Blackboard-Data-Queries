@@ -18,7 +18,9 @@ course_interactions AS (
         MAX(ca.last_accessed_time) AS last_interaction_time,
         COUNT(DISTINCT ca.person_id) AS unique_students_interacted
     FROM cdm_lms.course_activity ca
-    JOIN cdm_lms.person_course lpc ON lpc.person_id = ca.person_id AND lpc.course_id = ca.course_id
+    JOIN cdm_lms.person_course lpc 
+        ON lpc.person_id = ca.person_id 
+       AND lpc.course_id = ca.course_id
     JOIN filtered_courses fc ON fc.course_id = ca.course_id
     WHERE lpc.course_role = 'S'
     GROUP BY ca.course_id
@@ -32,44 +34,61 @@ student_counts AS (
     JOIN filtered_courses fc ON lpc.course_id = fc.course_id
     WHERE lpc.course_role = 'S'
     GROUP BY lpc.course_id
+),
+
+course_data AS (
+    SELECT
+        fc.course_id,
+        fc.course_name,
+        fc.design_mode,
+        fc.start_date,
+        fc.term_name AS term,
+
+        COUNT(DISTINCT p.id) AS instructor_count,
+        LISTAGG(DISTINCT CONCAT(p.first_name, ' ', p.last_name), ', ')
+            WITHIN GROUP (ORDER BY CONCAT(p.first_name, ' ', p.last_name)) AS instructors,
+        LISTAGG(DISTINCT p.email, ', ')
+            WITHIN GROUP (ORDER BY p.email) AS instructor_emails,
+
+        CASE WHEN ih.hierarchy_name_seq IS NOT NULL THEN SPLIT_PART(ih.hierarchy_name_seq, '||', 4) ELSE 'Unknown' END AS institutional_hierarchy_level_3,
+        CASE WHEN ih.hierarchy_name_seq IS NOT NULL THEN SPLIT_PART(ih.hierarchy_name_seq, '||', 5) ELSE 'Unknown' END AS institutional_hierarchy_level_4,
+
+        COALESCE(sc.total_student_count, 0) AS total_student_count,
+        COALESCE(ci.total_interaction_count, 0) AS total_course_interaction_count,
+        COALESCE(ci.unique_students_interacted, 0) AS student_course_interaction_count,
+        TO_CHAR(ci.last_interaction_time, 'YYYY-MM-DD HH24:MI:SS') AS last_course_interaction
+
+    FROM filtered_courses fc
+    JOIN cdm_lms.person_course lpc 
+        ON lpc.course_id = fc.course_id 
+       AND lpc.course_role = 'I'
+    JOIN cdm_lms.person p ON p.id = lpc.person_id
+    JOIN cdm_lms.institution_hierarchy_course ihc ON fc.course_id = ihc.course_id
+    JOIN cdm_lms.institution_hierarchy ih ON ih.id = ihc.institution_hierarchy_id
+    LEFT JOIN course_interactions ci ON ci.course_id = fc.course_id
+    LEFT JOIN student_counts sc ON sc.course_id = fc.course_id
+    JOIN cdm_lms.course_item citem ON lpc.course_id = citem.course_id
+
+    WHERE fc.course_name LIKE '%_V_%'
+      AND fc.design_mode IN ('P', 'U')
+      AND citem.available_ind = TRUE
+      AND ci.last_interaction_time IS NOT NULL
+      AND sc.total_student_count > 1
+
+    GROUP BY
+        fc.course_id, fc.course_name, fc.design_mode, fc.start_date, fc.term_name, ih.hierarchy_name_seq,
+        ci.total_interaction_count, ci.unique_students_interacted, ci.last_interaction_time,
+        sc.total_student_count
 )
 
+-- final summary calculations
 SELECT
-    fc.course_id,
-    fc.course_name,
-    fc.design_mode,
-    fc.start_date,
-    fc.term_name AS term,
+    MAX(total_course_interaction_count) AS max_interaction_count,
+    MIN(total_course_interaction_count) AS min_interaction_count,
+    ROUND(AVG(total_course_interaction_count), 2) AS avg_interaction_count,
 
-    COUNT(DISTINCT p.id) AS instructor_count,
-    LISTAGG(DISTINCT CONCAT(p.first_name, ' ', p.last_name), ', ')
-        WITHIN GROUP (ORDER BY CONCAT(p.first_name, ' ', p.last_name)) AS instructors,
-    LISTAGG(DISTINCT p.email, ', ')
-        WITHIN GROUP (ORDER BY p.email) AS instructor_emails,
+    MAX(CASE WHEN total_student_count > 0 THEN total_course_interaction_count * 1.0 / total_student_count ELSE NULL END) AS max_interaction_per_student,
+    MIN(CASE WHEN total_student_count > 0 THEN total_course_interaction_count * 1.0 / total_student_count ELSE NULL END) AS min_interaction_per_student,
+    ROUND(AVG(CASE WHEN total_student_count > 0 THEN total_course_interaction_count * 1.0 / total_student_count ELSE NULL END), 2) AS avg_interaction_per_student
 
-    CASE WHEN ih.hierarchy_name_seq IS NOT NULL THEN SPLIT_PART(ih.hierarchy_name_seq, '||', 4) ELSE 'Unknown' END AS institutional_hierarchy_level_3,
-    CASE WHEN ih.hierarchy_name_seq IS NOT NULL THEN SPLIT_PART(ih.hierarchy_name_seq, '||', 5) ELSE 'Unknown' END AS institutional_hierarchy_level_4,
-
-    COALESCE(sc.total_student_count, 0) AS total_student_count,
-    COALESCE(ci.total_interaction_count, 0) AS total_course_interaction_count,
-    COALESCE(ci.unique_students_interacted, 0) AS student_course_interaction_count,
-    TO_CHAR(ci.last_interaction_time, 'YYYY-MM-DD HH24:MI:SS') AS last_course_interaction
-
-FROM filtered_courses fc
-
-JOIN cdm_lms.person_course lpc ON lpc.course_id = fc.course_id AND lpc.course_role = 'I'
-JOIN cdm_lms.person p ON p.id = lpc.person_id
-JOIN cdm_lms.institution_hierarchy_course ihc ON fc.course_id = ihc.course_id
-JOIN cdm_lms.institution_hierarchy ih ON ih.id = ihc.institution_hierarchy_id
-LEFT JOIN course_interactions ci ON ci.course_id = fc.course_id
-LEFT JOIN student_counts sc ON sc.course_id = fc.course_id
-
-WHERE fc.course_name LIKE '%_V_%'
-  AND fc.design_mode IN ('U', 'P')
-
-GROUP BY
-    fc.course_id, fc.course_name, fc.design_mode, fc.start_date, fc.term_name, ih.hierarchy_name_seq,
-    ci.total_interaction_count, ci.unique_students_interacted, ci.last_interaction_time,
-    sc.total_student_count
-
-ORDER BY fc.start_date, fc.course_name, instructor_count DESC;
+FROM course_data;
