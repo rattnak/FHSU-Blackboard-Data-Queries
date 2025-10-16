@@ -18,14 +18,14 @@ This query retrieves a comprehensive list of courses with their assigned instruc
 | `course_name` | Full display name of the course |
 | `design_mode` | Course Design Mode {'C': 'Classic', 'U': 'Ultra', 'P': 'Preview' |
 | `start_date` | Course start date |
-| `term` | Term name (e.g., "Fall 2024") |
+| `term` | Term name (e.g., "S2025") |
 | `instructor_count` | Number of instructors assigned |
 | `instructors` | Comma-separated list of instructor names |
 | `instructor_emails` | Comma-separated list of instructor emails |
-| `institutional_hierarchy_level_1` | University level |
-| `institutional_hierarchy_level_2` | College level |
-| `institutional_hierarchy_level_3` | Department level |
-| `institutional_hierarchy_level_4` | Program/sub-department level |
+| `institutional_hierarchy_level_1` | Fort Hays State University |
+| `institutional_hierarchy_level_2` | FHSU - Academic Colleges and Departments |
+| `institutional_hierarchy_level_3` | College Level |
+| `institutional_hierarchy_level_4` | Department Level |
 
 ## Key Features
 
