@@ -16,7 +16,7 @@ This query retrieves a comprehensive list of courses with their assigned instruc
 |--------|-------------|
 | `course_id` | Unique Blackboard course identifier |
 | `course_name` | Full display name of the course |
-| `design_mode` | Course Design Mode {'C': 'Classic', 'U': 'Ultra', 'P': 'Preview' |
+| `design_mode` | Course Design Mode {'C': 'Classic', 'U': 'Ultra', 'P': 'Preview'} |
 | `start_date` | Course start date |
 | `term` | Term name (e.g., "S2025") |
 | `instructor_count` | Number of instructors assigned |
