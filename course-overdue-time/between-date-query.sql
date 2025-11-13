@@ -23,10 +23,10 @@ LEFT JOIN CDM_LMS.PERSON p
     ON p.id = pc.person_id
 INNER JOIN CDM_LMS.TERM t 
     ON c.term_id = t.id
-WHERE gb.due_time IS NOT NULL 
+WHERE gb.due_time IS NOT NULL
   AND gb.due_time < CURRENT_DATE - INTERVAL '21 DAYS'
   AND t.end_date >= CURRENT_DATE
-  AND lt.start_date BETWEEN '2024-07-31' AND '2025-04-01'
+  AND t.start_date BETWEEN '2024-07-31' AND '2025-04-01'
   AND c.row_deleted_time IS NULL
 GROUP BY 
     c.course_number, c.name, t.name, t.start_date, t.end_date, 
