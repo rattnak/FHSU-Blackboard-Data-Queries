@@ -49,7 +49,7 @@ INNER JOIN cdm_lms.course_item ci
     AND LOWER(ci.name) LIKE '%syllabus%' 
     AND ci.row_deleted_time IS NULL
 WHERE lt.start_date BETWEEN '2024-07-31' AND '2025-04-01'
-    AND syllabus_status = 'Outdated'
+    AND ci.modified_time < CURRENT_DATE - INTERVAL '1 YEAR'
     AND lc.row_deleted_time IS NULL
 GROUP BY
     lc.id, lc.name, lc.design_mode, lt.start_date, lt.name, 
