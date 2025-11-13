@@ -21,7 +21,7 @@ LEFT JOIN CDM_LMS.PERSON p
     ON p.id = pc.person_id
 WHERE LOWER(ci.name) LIKE '%syllabus%'
   AND ci.modified_time < CURRENT_DATE - INTERVAL '1 YEAR'
-  AND lt.start_date BETWEEN '2024-07-31' AND '2025-04-01'
+  AND t.start_date BETWEEN '2024-07-31' AND '2025-04-01'
   AND c.row_deleted_time IS NULL
   AND ci.row_deleted_time IS NULL
 GROUP BY 
