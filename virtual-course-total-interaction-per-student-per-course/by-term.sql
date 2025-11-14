@@ -30,11 +30,11 @@ course_interactions AS (
         COUNT(DISTINCT ca.person_id) AS unique_students_interacted,
         MAX(ca.last_accessed_time) AS last_interaction_time
     FROM cdm_lms.course_activity ca
-    JOIN cdm_lms.person_course lpc 
-      ON lpc.person_id = ca.person_id 
-     AND lpc.course_id = ca.course_id
+    JOIN cdm_lms.person_course pc
+      ON pc.person_id = ca.person_id
+     AND pc.course_id = ca.course_id
     JOIN filtered_courses fc ON fc.course_id = ca.course_id
-    WHERE lpc.course_role = 'S'
+    WHERE pc.course_role = 'S'
     GROUP BY ca.course_id
     HAVING COUNT(DISTINCT ca.person_id) > 1
 ),
@@ -44,11 +44,11 @@ student_course_interactions AS (
         ca.course_id,
         COUNT(DISTINCT ca.id) AS student_interactions
     FROM cdm_lms.course_activity ca
-    JOIN cdm_lms.person_course lpc 
-      ON lpc.person_id = ca.person_id 
-     AND lpc.course_id = ca.course_id
+    JOIN cdm_lms.person_course pc
+      ON pc.person_id = ca.person_id
+     AND pc.course_id = ca.course_id
     JOIN course_interactions ci ON ci.course_id = ca.course_id
-    WHERE lpc.course_role = 'S'
+    WHERE pc.course_role = 'S'
     GROUP BY ca.person_id, ca.course_id
 )
 SELECT DISTINCT

@@ -1,9 +1,9 @@
 SELECT
-    lc.id AS course_id,
-    lc.name AS course_name,
-    lc.design_mode,
-    lt.start_date,
-    lt.name AS term,
+    c.id AS course_id,
+    c.name AS course_name,
+    c.design_mode,
+    term.start_date,
+    term.name AS term,
     COUNT(DISTINCT p.id) AS instructor_count,
     LISTAGG(DISTINCT CONCAT(p.first_name, ' ', p.last_name), ', ')
         WITHIN GROUP (ORDER BY CONCAT(p.first_name, ' ', p.last_name)) AS instructors,
@@ -25,21 +25,21 @@ SELECT
         WHEN ih.hierarchy_name_seq IS NOT NULL THEN SPLIT_PART(ih.hierarchy_name_seq, '||', 5)
         ELSE 'Unknown'
     END AS institutional_hierarchy_level_4
-FROM cdm_lms.course lc
-INNER JOIN cdm_lms.term lt 
-    ON lt.id = lc.term_id
-INNER JOIN cdm_lms.person_course lpc  
-    ON lpc.course_id = lc.id AND lpc.course_role = 'I'
-INNER JOIN cdm_lms.person p  
-    ON p.id = lpc.person_id
-INNER JOIN cdm_lms.institution_hierarchy_course ihc 
-    ON lc.id = ihc.course_id
-INNER JOIN cdm_lms.institution_hierarchy ih 
+FROM cdm_lms.course c
+INNER JOIN cdm_lms.term term
+    ON term.id = c.term_id
+INNER JOIN cdm_lms.person_course pc
+    ON pc.course_id = c.id AND pc.course_role = 'I'
+INNER JOIN cdm_lms.person p
+    ON p.id = pc.person_id
+INNER JOIN cdm_lms.institution_hierarchy_course ihc
+    ON c.id = ihc.course_id
+INNER JOIN cdm_lms.institution_hierarchy ih
     ON ih.id = ihc.institution_hierarchy_id
-WHERE lt.name = 'S2025'
+WHERE term.name = 'S2025'
     AND SPLIT_PART(ih.hierarchy_name_seq, '||', 4) = 'College of Education'
-    AND lc.name LIKE '%_V%_%' 
-    AND lc.design_mode IN ('U', 'P')
+    AND c.name LIKE '%_V%_%'
+    AND c.design_mode IN ('U', 'P')
 GROUP BY
-    lc.id, lc.name, lc.design_mode, lt.start_date, lt.name, ih.hierarchy_name_seq
-ORDER BY lt.start_date, instructor_count DESC, lc.name;
+    c.id, c.name, c.design_mode, term.start_date, term.name, ih.hierarchy_name_seq
+ORDER BY term.start_date, instructor_count DESC, c.name;

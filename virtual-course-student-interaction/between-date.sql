@@ -29,12 +29,12 @@ course_interactions AS (
             COUNT(DISTINCT ca.id)         AS interaction_count,
             MAX(ca.last_accessed_time)    AS last_accessed_time
         FROM cdm_lms.course_activity ca
-        JOIN cdm_lms.person_course lpc
-          ON lpc.person_id = ca.person_id
-         AND lpc.course_id = ca.course_id
+        JOIN cdm_lms.person_course pc
+          ON pc.person_id = ca.person_id
+         AND pc.course_id = ca.course_id
         JOIN filtered_courses fc
           ON fc.course_id = ca.course_id
-        WHERE lpc.course_role = 'S'
+        WHERE pc.course_role = 'S'
         GROUP BY ca.course_id, ca.person_id
     ) s
     GROUP BY s.course_id
@@ -46,12 +46,12 @@ student_counts AS (
         ca.course_id,
         COUNT(DISTINCT ca.person_id) AS total_student_count
     FROM cdm_lms.course_activity ca
-    JOIN cdm_lms.person_course lpc
-      ON lpc.person_id = ca.person_id
-     AND lpc.course_id = ca.course_id
+    JOIN cdm_lms.person_course pc
+      ON pc.person_id = ca.person_id
+     AND pc.course_id = ca.course_id
     JOIN filtered_courses fc
       ON fc.course_id = ca.course_id
-    WHERE lpc.course_role = 'S'
+    WHERE pc.course_role = 'S'
     GROUP BY ca.course_id
 )
 
@@ -80,15 +80,15 @@ SELECT
     TO_CHAR(ci.last_interaction_time, 'YYYY-MM-DD HH24:MI:SS') AS last_course_interaction
 
 FROM filtered_courses fc
-JOIN cdm_lms.person_course lpc
-  ON lpc.course_id = fc.course_id
- AND lpc.course_role = 'I'
-JOIN cdm_lms.person p ON p.id = lpc.person_id
+JOIN cdm_lms.person_course pc
+  ON pc.course_id = fc.course_id
+ AND pc.course_role = 'I'
+JOIN cdm_lms.person p ON p.id = pc.person_id
 JOIN cdm_lms.institution_hierarchy_course ihc ON fc.course_id = ihc.course_id
 JOIN cdm_lms.institution_hierarchy ih ON ih.id = ihc.institution_hierarchy_id
 LEFT JOIN course_interactions ci ON ci.course_id = fc.course_id
 LEFT JOIN student_counts sc ON sc.course_id = fc.course_id
-JOIN cdm_lms.course_item citem ON lpc.course_id = citem.course_id
+JOIN cdm_lms.course_item ci_item ON pc.course_id = ci_item.course_id
 
 WHERE fc.course_name LIKE '%_V_%'
   AND (
@@ -104,7 +104,7 @@ WHERE fc.course_name LIKE '%_V_%'
       )
   AND fc.course_name NOT LIKE '%-%V%'
   AND fc.design_mode IN ('P', 'U', 'C')
-  AND citem.available_ind = TRUE
+  AND ci_item.available_ind = TRUE
   AND ci.last_interaction_time IS NOT NULL
   AND sc.total_student_count > 1
 
