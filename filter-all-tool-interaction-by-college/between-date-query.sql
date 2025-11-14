@@ -56,24 +56,24 @@ tool_usage AS (
 per_tool_course_agg AS (
     SELECT
         tu.course_id,
-        lc.name AS course_name,
-        lc.design_mode,
-        lt.name AS term,
-        lt.start_date,
+        c.name AS course_name,
+        c.design_mode,
+        term.name AS term,
+        term.start_date,
         tu.tool_id,
-        COUNT(DISTINCT CASE WHEN lpc.course_role = 'S' THEN lpc.person_id END) AS students_used_tool,
+        COUNT(DISTINCT CASE WHEN pc.course_role = 'S' THEN pc.person_id END) AS students_used_tool,
         tu.tool_name,
         SUM(tu.total_interaction_cnt) AS total_interactions,
         MAX(tu.last_accessed_time) AS last_accessed_time,
         ih.hierarchy_name_seq
     FROM tool_usage tu
-    JOIN cdm_lms.person_course lpc ON lpc.id = tu.person_course_id
-    JOIN cdm_lms.course lc ON lc.id = tu.course_id
-    JOIN cdm_lms.term lt ON lt.id = lc.term_id
-    JOIN cdm_lms.institution_hierarchy_course ihc ON ihc.course_id = lc.id
+    JOIN cdm_lms.person_course pc ON pc.id = tu.person_course_id
+    JOIN cdm_lms.course c ON c.id = tu.course_id
+    JOIN cdm_lms.term term ON term.id = c.term_id
+    JOIN cdm_lms.institution_hierarchy_course ihc ON ihc.course_id = c.id
     JOIN cdm_lms.institution_hierarchy ih ON ih.id = ihc.institution_hierarchy_id
     WHERE SPLIT_PART(ih.hierarchy_name_seq, '||', 4) = 'College of Education'
-    GROUP BY tu.course_id, lc.name, lc.design_mode, lt.name, lt.start_date, ih.hierarchy_name_seq, tu.tool_id, tu.tool_name
+    GROUP BY tu.course_id, c.name, c.design_mode, term.name, term.start_date, ih.hierarchy_name_seq, tu.tool_id, tu.tool_name
 ),
 
 -- Step 4: Combine tools per course
@@ -94,21 +94,21 @@ SELECT
     pta.term,
     pta.start_date,
     (
-        SELECT COUNT(DISTINCT lpc1.person_id)
-        FROM cdm_lms.person_course lpc1
-        WHERE lpc1.course_id = pta.course_id AND lpc1.course_role = 'I'
+        SELECT COUNT(DISTINCT pc1.person_id)
+        FROM cdm_lms.person_course pc1
+        WHERE pc1.course_id = pta.course_id AND pc1.course_role = 'I'
     ) AS instructor_count,
     (
         SELECT LISTAGG(DISTINCT p.first_name || ' ' || p.last_name, ', ')
-        FROM cdm_lms.person_course lpc2
-        JOIN cdm_lms.person p ON p.id = lpc2.person_id
-        WHERE lpc2.course_id = pta.course_id AND lpc2.course_role = 'I'
+        FROM cdm_lms.person_course pc2
+        JOIN cdm_lms.person p ON p.id = pc2.person_id
+        WHERE pc2.course_id = pta.course_id AND pc2.course_role = 'I'
     ) AS instructor_name,
     (
         SELECT LISTAGG(DISTINCT p.email, ', ')
-        FROM cdm_lms.person_course lpc3
-        JOIN cdm_lms.person p ON p.id = lpc3.person_id
-        WHERE lpc3.course_id = pta.course_id AND lpc3.course_role = 'I'
+        FROM cdm_lms.person_course pc3
+        JOIN cdm_lms.person p ON p.id = pc3.person_id
+        WHERE pc3.course_id = pta.course_id AND pc3.course_role = 'I'
     ) AS instructor_email,
     (
         SELECT COUNT(DISTINCT tu.tool_name)
@@ -117,9 +117,9 @@ SELECT
     ) AS tool_count,
     tag.tool_interaction_detail,
     (
-        SELECT COUNT(DISTINCT lpc4.person_id)
-        FROM cdm_lms.person_course lpc4
-        WHERE lpc4.course_id = pta.course_id AND lpc4.course_role = 'S'
+        SELECT COUNT(DISTINCT pc4.person_id)
+        FROM cdm_lms.person_course pc4
+        WHERE pc4.course_id = pta.course_id AND pc4.course_role = 'S'
     ) AS total_student,
     pta.students_used_tool AS students_tool_interaction_count,
     tag.total_tool_interaction_count,
