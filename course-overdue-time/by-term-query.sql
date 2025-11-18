@@ -6,12 +6,15 @@ SELECT
     t.end_date AS term_end_date,
     ci.name AS assignment_name,
     gb.due_time AS assignment_due_date,
-    CASE 
+    CASE
         WHEN c.design_mode IN ('U', 'P') THEN 'Ultra'
         ELSE 'Original'
     END AS course_type,
-    LISTAGG(CONCAT(p.first_name, ' ', p.last_name, ' <', p.email, '>'), ', ') 
-        WITHIN GROUP (ORDER BY p.last_name, p.first_name) AS instructors
+    COUNT(DISTINCT p.id) AS instructor_count,
+    LISTAGG(DISTINCT p.first_name || ' ' || p.last_name, ', ')
+        WITHIN GROUP (ORDER BY p.last_name, p.first_name) AS instructor_names,
+    LISTAGG(DISTINCT p.email, ', ')
+        WITHIN GROUP (ORDER BY p.email) AS instructor_emails
 FROM CDM_LMS.COURSE c
 INNER JOIN CDM_LMS.GRADEBOOK gb 
     ON gb.course_id = c.id
