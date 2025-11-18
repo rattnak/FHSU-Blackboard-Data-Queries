@@ -7,8 +7,8 @@ SELECT
     gb.name AS assignment_name,
     gb.due_time,
     COUNT(DISTINCT p.id) AS instructor_count,
-    LISTAGG(DISTINCT CONCAT(p.first_name, ' ', p.last_name), ', ')
-        WITHIN GROUP (ORDER BY CONCAT(p.first_name, ' ', p.last_name)) AS instructors,
+    LISTAGG(DISTINCT p.first_name || ' ' || p.last_name, ', ')
+        WITHIN GROUP (ORDER BY p.last_name, p.first_name) AS instructor_names,
     LISTAGG(DISTINCT p.email, ', ')
         WITHIN GROUP (ORDER BY p.email) AS instructor_emails,
     CASE WHEN ih.hierarchy_name_seq IS NOT NULL THEN SPLIT_PART(ih.hierarchy_name_seq, '||', 2) ELSE 'Unknown' END AS institutional_hierarchy_level_1,
@@ -20,7 +20,7 @@ INNER JOIN cdm_lms.term term ON term.id = c.term_id
 INNER JOIN cdm_lms.gradebook gb ON gb.course_id = c.id
 INNER JOIN cdm_lms.person_course pc ON pc.course_id = c.id AND pc.course_role = 'I'
 INNER JOIN cdm_lms.person p ON p.id = pc.person_id
-INNER JOIN cdm_lms.institution_hierarchy_course ihc ON c.id = ihc.course_id
+INNER JOIN cdm_lms.institution_hierarchy_course ihc ON c.id = ihc.course_id AND ihc.primary_ind = 1
 INNER JOIN cdm_lms.institution_hierarchy ih ON ih.id = ihc.institution_hierarchy_id
 WHERE c.name = '2025S_HHP440_A_Anatomical Kinesiology'
 GROUP BY
