@@ -70,7 +70,7 @@ per_tool_course_agg AS (
     JOIN cdm_lms.person_course pc ON pc.id = tu.person_course_id
     JOIN cdm_lms.course c ON c.id = tu.course_id
     JOIN cdm_lms.term t ON t.id = c.term_id
-    JOIN cdm_lms.institution_hierarchy_course ihc ON ihc.course_id = c.id
+    JOIN cdm_lms.institution_hierarchy_course ihc ON ihc.course_id = c.id AND ihc.primary_ind = 1
     JOIN cdm_lms.institution_hierarchy ih ON ih.id = ihc.institution_hierarchy_id
     GROUP BY tu.course_id, c.name, c.design_mode, t.name, t.start_date, ih.hierarchy_name_seq, tu.tool_id, tu.tool_name
 ),
