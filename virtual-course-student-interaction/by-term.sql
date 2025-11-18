@@ -63,11 +63,13 @@ SELECT
     fc.term_name AS term,
 
     -- COUNT(DISTINCT p.id) AS instructor_count,
-    -- LISTAGG(DISTINCT CONCAT(p.first_name, ' ', p.last_name), ', ')
-    --     WITHIN GROUP (ORDER BY CONCAT(p.first_name, ' ', p.last_name)) AS instructors,
+    -- LISTAGG(DISTINCT p.first_name || ' ' || p.last_name, ', ')
+    --     WITHIN GROUP (ORDER BY p.last_name, p.first_name) AS instructor_names,
     -- LISTAGG(DISTINCT p.email, ', ')
     --     WITHIN GROUP (ORDER BY p.email) AS instructor_emails,
 
+    CASE WHEN ih.hierarchy_name_seq IS NOT NULL THEN SPLIT_PART(ih.hierarchy_name_seq, '||', 2) ELSE 'Unknown' END AS institutional_hierarchy_level_1,
+    CASE WHEN ih.hierarchy_name_seq IS NOT NULL THEN SPLIT_PART(ih.hierarchy_name_seq, '||', 3) ELSE 'Unknown' END AS institutional_hierarchy_level_2,
     CASE WHEN ih.hierarchy_name_seq IS NOT NULL THEN SPLIT_PART(ih.hierarchy_name_seq, '||', 4) ELSE 'Unknown' END AS institutional_hierarchy_level_3,
     CASE WHEN ih.hierarchy_name_seq IS NOT NULL THEN SPLIT_PART(ih.hierarchy_name_seq, '||', 5) ELSE 'Unknown' END AS institutional_hierarchy_level_4,
 
@@ -84,25 +86,13 @@ JOIN cdm_lms.person_course pc
   ON pc.course_id = fc.course_id
  AND pc.course_role = 'I'
 JOIN cdm_lms.person p ON p.id = pc.person_id
-JOIN cdm_lms.institution_hierarchy_course ihc ON fc.course_id = ihc.course_id
+JOIN cdm_lms.institution_hierarchy_course ihc ON fc.course_id = ihc.course_id AND ihc.primary_ind = 1
 JOIN cdm_lms.institution_hierarchy ih ON ih.id = ihc.institution_hierarchy_id
 LEFT JOIN course_interactions ci ON ci.course_id = fc.course_id
 LEFT JOIN student_counts sc ON sc.course_id = fc.course_id
 JOIN cdm_lms.course_item citem ON pc.course_id = citem.course_id
 
-WHERE fc.course_name LIKE '%_V_%'
-  AND (
-          fc.course_name  LIKE '%_VA_%' OR fc.course_name  LIKE '%_VB_%' OR fc.course_name LIKE '%_VC_%' OR
-          fc.course_name LIKE '%_VD_%' OR fc.course_name LIKE '%_VE_%' OR fc.course_name LIKE '%_VF_%' OR
-          fc.course_name  LIKE '%_VG_%' OR fc.course_name LIKE '%_VH_%' OR fc.course_name LIKE '%_VI_%' OR
-          fc.course_name  LIKE '%_VJ_%' OR fc.course_name LIKE '%_VK_%' OR fc.course_name LIKE '%_VL_%' OR
-          fc.course_name  LIKE '%_VM_%' OR fc.course_name LIKE '%_VN_%' OR fc.course_name LIKE '%_VO_%' OR
-          fc.course_name  LIKE '%_VP_%' OR fc.course_name LIKE '%_VQ_%' OR fc.course_name LIKE '%_VR_%' OR
-          fc.course_name  LIKE '%_VS_%' OR fc.course_name LIKE '%_VT_%' OR fc.course_name LIKE '%_VU_%' OR
-          fc.course_name  LIKE '%_VV_%' OR fc.course_name LIKE '%_VW_%' OR fc.course_name LIKE '%_VX_%' OR
-          fc.course_name  LIKE '%_VY_%' OR fc.course_name LIKE '%_VZ_%'
-      )
-  AND fc.course_name NOT LIKE '%-%V%'
+WHERE fc.course_name LIKE '%_V_%_%'
   AND fc.design_mode IN ('P', 'U', 'C')
   AND citem.available_ind = TRUE
   AND ci.last_interaction_time IS NOT NULL

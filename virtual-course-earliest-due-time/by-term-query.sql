@@ -22,8 +22,8 @@ SELECT
     ea.due_time AS earliest_due_time,
     term.name AS term,
     COUNT(DISTINCT p.id) AS instructor_count,
-    LISTAGG(DISTINCT CONCAT(p.first_name, ' ', p.last_name), ', ')
-        WITHIN GROUP (ORDER BY CONCAT(p.first_name, ' ', p.last_name)) AS instructors,
+    LISTAGG(DISTINCT p.first_name || ' ' || p.last_name, ', ')
+        WITHIN GROUP (ORDER BY p.last_name, p.first_name) AS instructor_names,
     LISTAGG(DISTINCT p.email, ', ')
         WITHIN GROUP (ORDER BY p.email) AS instructor_emails,
     CASE WHEN ih.hierarchy_name_seq IS NOT NULL THEN SPLIT_PART(ih.hierarchy_name_seq, '||', 2) ELSE 'Unknown' END AS institutional_hierarchy_level_1,
@@ -35,7 +35,7 @@ INNER JOIN cdm_lms.term term ON term.id = c.term_id
 LEFT JOIN earliest_assignment ea ON ea.course_id = c.id
 INNER JOIN cdm_lms.person_course pc ON pc.course_id = c.id AND pc.course_role = 'I'
 INNER JOIN cdm_lms.person p ON p.id = pc.person_id
-INNER JOIN cdm_lms.institution_hierarchy_course ihc ON c.id = ihc.course_id
+INNER JOIN cdm_lms.institution_hierarchy_course ihc ON c.id = ihc.course_id AND ihc.primary_ind = 1
 INNER JOIN cdm_lms.institution_hierarchy ih ON ih.id = ihc.institution_hierarchy_id
 WHERE term.name = 'S2025'
     AND c.name LIKE '%_V%_%'

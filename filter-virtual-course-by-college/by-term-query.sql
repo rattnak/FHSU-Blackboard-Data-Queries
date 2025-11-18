@@ -5,8 +5,8 @@ SELECT
     term.start_date,
     term.name AS term,
     COUNT(DISTINCT p.id) AS instructor_count,
-    LISTAGG(DISTINCT CONCAT(p.first_name, ' ', p.last_name), ', ')
-        WITHIN GROUP (ORDER BY CONCAT(p.first_name, ' ', p.last_name)) AS instructors,
+    LISTAGG(DISTINCT p.first_name || ' ' || p.last_name, ', ')
+        WITHIN GROUP (ORDER BY p.last_name, p.first_name) AS instructor_names,
     LISTAGG(DISTINCT p.email, ', ')
         WITHIN GROUP (ORDER BY p.email) AS instructor_emails,
     CASE
@@ -33,7 +33,7 @@ INNER JOIN cdm_lms.person_course pc
 INNER JOIN cdm_lms.person p
     ON p.id = pc.person_id
 INNER JOIN cdm_lms.institution_hierarchy_course ihc
-    ON c.id = ihc.course_id
+    ON c.id = ihc.course_id AND ihc.primary_ind = 1
 INNER JOIN cdm_lms.institution_hierarchy ih
     ON ih.id = ihc.institution_hierarchy_id
 WHERE term.name = 'S2025'
