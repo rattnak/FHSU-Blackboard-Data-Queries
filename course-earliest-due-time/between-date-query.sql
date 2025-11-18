@@ -1,25 +1,25 @@
 WITH ranked_assignments AS (
     SELECT
-        lc.id AS course_id,
-        lc.name AS course_name,
-        lc.design_mode,
-        lt.name AS term,
-        lt.start_date,
-        lg.name AS assignment_name,
-        lg.due_time,
+        c.id AS course_id,
+        c.name AS course_name,
+        c.design_mode,
+        t.name AS term,
+        t.start_date,
+        gb.name AS assignment_name,
+        gb.due_time,
         p.id AS instructor_id,
-        CONCAT(p.first_name, ' ', p.last_name) AS instructor_name,
+        p.first_name || ' ' || p.last_name AS instructor_name,
         p.email AS instructor_email,
         ih.hierarchy_name_seq,
-        ROW_NUMBER() OVER (PARTITION BY lc.id ORDER BY lg.due_time ASC) AS rn
-    FROM cdm_lms.course lc
-    INNER JOIN cdm_lms.term lt ON lt.id = lc.term_id
-    INNER JOIN cdm_lms.gradebook lg ON lg.course_id = lc.id
-    INNER JOIN cdm_lms.person_course lpc ON lpc.course_id = lc.id AND lpc.course_role = 'I'
-    INNER JOIN cdm_lms.person p ON p.id = lpc.person_id
-    INNER JOIN cdm_lms.institution_hierarchy_course ihc ON lc.id = ihc.course_id
+        ROW_NUMBER() OVER (PARTITION BY c.id ORDER BY gb.due_time ASC) AS rn
+    FROM cdm_lms.course c
+    INNER JOIN cdm_lms.term t ON t.id = c.term_id
+    INNER JOIN cdm_lms.gradebook gb ON gb.course_id = c.id
+    INNER JOIN cdm_lms.person_course pc ON pc.course_id = c.id AND pc.course_role = 'I'
+    INNER JOIN cdm_lms.person p ON p.id = pc.person_id
+    INNER JOIN cdm_lms.institution_hierarchy_course ihc ON c.id = ihc.course_id AND ihc.primary_ind = 1
     INNER JOIN cdm_lms.institution_hierarchy ih ON ih.id = ihc.institution_hierarchy_id
-    WHERE lt.start_date BETWEEN '2024-07-31' AND '2025-04-01'
+    WHERE t.start_date BETWEEN '2024-07-31' AND '2025-04-01'
 ),
 earliest_assignment_per_course AS (
     SELECT
@@ -36,16 +36,16 @@ earliest_assignment_per_course AS (
 ),
 instructor_agg AS (
     SELECT
-        lc.id AS course_id,
+        c.id AS course_id,
         COUNT(DISTINCT p.id) AS instructor_count,
-        LISTAGG(DISTINCT CONCAT(p.first_name, ' ', p.last_name), ', ') 
-            WITHIN GROUP (ORDER BY CONCAT(p.first_name, ' ', p.last_name)) AS instructors,
-        LISTAGG(DISTINCT p.email, ', ') 
+        LISTAGG(DISTINCT p.first_name || ' ' || p.last_name, ', ')
+            WITHIN GROUP (ORDER BY p.last_name, p.first_name) AS instructor_names,
+        LISTAGG(DISTINCT p.email, ', ')
             WITHIN GROUP (ORDER BY p.email) AS instructor_emails
-    FROM cdm_lms.course lc
-    INNER JOIN cdm_lms.person_course lpc ON lc.id = lpc.course_id AND lpc.course_role = 'I'
-    INNER JOIN cdm_lms.person p ON p.id = lpc.person_id
-    GROUP BY lc.id
+    FROM cdm_lms.course c
+    INNER JOIN cdm_lms.person_course pc ON c.id = pc.course_id AND pc.course_role = 'I'
+    INNER JOIN cdm_lms.person p ON p.id = pc.person_id
+    GROUP BY c.id
 )
 SELECT
     ea.course_id,

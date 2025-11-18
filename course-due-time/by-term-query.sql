@@ -1,14 +1,14 @@
 SELECT
-    lc.id AS course_id,
-    lc.name AS course_name,
-    lc.design_mode,
-    lt.start_date,
-    lt.name AS term,
-    lg.name AS assignment_name,
-    lg.due_time,
+    c.id AS course_id,
+    c.name AS course_name,
+    c.design_mode,
+    t.start_date,
+    t.name AS term,
+    gb.name AS assignment_name,
+    gb.due_time,
     COUNT(DISTINCT p.id) AS instructor_count,
-    LISTAGG(DISTINCT CONCAT(p.first_name, ' ', p.last_name), ', ') 
-        WITHIN GROUP (ORDER BY CONCAT(p.first_name, ' ', p.last_name)) AS instructors,
+    LISTAGG(DISTINCT p.first_name || ' ' || p.last_name, ', ')
+        WITHIN GROUP (ORDER BY p.last_name, p.first_name) AS instructor_names,
     LISTAGG(DISTINCT p.email, ', ') 
         WITHIN GROUP (ORDER BY p.email) AS instructor_emails,
     CASE
@@ -27,14 +27,14 @@ SELECT
         WHEN ih.hierarchy_name_seq IS NOT NULL THEN SPLIT_PART(ih.hierarchy_name_seq, '||', 5)
         ELSE 'Unknown'
     END AS institutional_hierarchy_level_4
-FROM cdm_lms.course lc
-INNER JOIN cdm_lms.term lt ON lt.id = lc.term_id
-INNER JOIN cdm_lms.gradebook lg ON lg.course_id = lc.id
-INNER JOIN cdm_lms.person_course lpc ON lpc.course_id = lc.id AND lpc.course_role = 'I'
-INNER JOIN cdm_lms.person p ON p.id = lpc.person_id
-INNER JOIN cdm_lms.institution_hierarchy_course ihc ON lc.id = ihc.course_id
+FROM cdm_lms.course c
+INNER JOIN cdm_lms.term t ON t.id = c.term_id
+INNER JOIN cdm_lms.gradebook gb ON gb.course_id = c.id
+INNER JOIN cdm_lms.person_course pc ON pc.course_id = c.id AND pc.course_role = 'I'
+INNER JOIN cdm_lms.person p ON p.id = pc.person_id
+INNER JOIN cdm_lms.institution_hierarchy_course ihc ON c.id = ihc.course_id AND ihc.primary_ind = 1
 INNER JOIN cdm_lms.institution_hierarchy ih ON ih.id = ihc.institution_hierarchy_id
-WHERE lt.name = 'S2025'
+WHERE t.name = 'S2025'
 GROUP BY
-    lc.id, lc.name, lc.design_mode, lt.start_date, lt.name, lg.name, lg.due_time, ih.hierarchy_name_seq
-ORDER BY lg.due_time ASC;
+    c.id, c.name, c.design_mode, t.start_date, t.name, gb.name, gb.due_time, ih.hierarchy_name_seq
+ORDER BY gb.due_time ASC;
