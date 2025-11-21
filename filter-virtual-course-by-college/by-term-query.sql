@@ -5,10 +5,8 @@ SELECT
     term.start_date,
     term.name AS term,
     COUNT(DISTINCT p.id) AS instructor_count,
-    LISTAGG(DISTINCT p.first_name || ' ' || p.last_name, ', ')
-        WITHIN GROUP (ORDER BY p.last_name, p.first_name) AS instructor_names,
-    LISTAGG(DISTINCT p.email, ', ')
-        WITHIN GROUP (ORDER BY p.email) AS instructor_emails,
+    LISTAGG(DISTINCT p.first_name || ' ' || p.last_name, ', ') AS instructor_names,
+    LISTAGG(DISTINCT p.email, ', ') AS instructor_emails,
     CASE
         WHEN ih.hierarchy_name_seq IS NOT NULL THEN SPLIT_PART(ih.hierarchy_name_seq, '||', 2)
         ELSE 'Unknown'

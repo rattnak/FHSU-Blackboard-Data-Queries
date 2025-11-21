@@ -38,10 +38,8 @@ instructor_agg AS (
     SELECT
         c.id AS course_id,
         COUNT(DISTINCT p.id) AS instructor_count,
-        LISTAGG(DISTINCT p.first_name || ' ' || p.last_name, ', ')
-            WITHIN GROUP (ORDER BY p.last_name, p.first_name) AS instructor_names,
-        LISTAGG(DISTINCT p.email, ', ')
-            WITHIN GROUP (ORDER BY p.email) AS instructor_emails
+        LISTAGG(DISTINCT p.first_name || ' ' || p.last_name, ', ') AS instructor_names,
+        LISTAGG(DISTINCT p.email, ', ') AS instructor_emails
     FROM cdm_lms.course c
     INNER JOIN cdm_lms.person_course pc ON c.id = pc.course_id AND pc.course_role = 'I'
     INNER JOIN cdm_lms.person p ON p.id = pc.person_id

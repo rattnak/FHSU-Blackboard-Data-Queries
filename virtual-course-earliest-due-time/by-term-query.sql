@@ -22,10 +22,8 @@ SELECT
     ea.due_time AS earliest_due_time,
     term.name AS term,
     COUNT(DISTINCT p.id) AS instructor_count,
-    LISTAGG(DISTINCT p.first_name || ' ' || p.last_name, ', ')
-        WITHIN GROUP (ORDER BY p.last_name, p.first_name) AS instructor_names,
-    LISTAGG(DISTINCT p.email, ', ')
-        WITHIN GROUP (ORDER BY p.email) AS instructor_emails,
+    LISTAGG(DISTINCT p.first_name || ' ' || p.last_name, ', ') AS instructor_names,
+    LISTAGG(DISTINCT p.email, ', ') AS instructor_emails,
     CASE WHEN ih.hierarchy_name_seq IS NOT NULL THEN SPLIT_PART(ih.hierarchy_name_seq, '||', 2) ELSE 'Unknown' END AS institutional_hierarchy_level_1,
     CASE WHEN ih.hierarchy_name_seq IS NOT NULL THEN SPLIT_PART(ih.hierarchy_name_seq, '||', 3) ELSE 'Unknown' END AS institutional_hierarchy_level_2,
     CASE WHEN ih.hierarchy_name_seq IS NOT NULL THEN SPLIT_PART(ih.hierarchy_name_seq, '||', 4) ELSE 'Unknown' END AS institutional_hierarchy_level_3,

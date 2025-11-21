@@ -9,10 +9,8 @@ SELECT
         ELSE 'Original'
     END AS course_type,
     COUNT(DISTINCT p.id) AS instructor_count,
-    LISTAGG(DISTINCT p.first_name || ' ' || p.last_name, ', ')
-        WITHIN GROUP (ORDER BY p.last_name, p.first_name) AS instructor_names,
-    LISTAGG(DISTINCT p.email, ', ')
-        WITHIN GROUP (ORDER BY p.email) AS instructor_emails
+    LISTAGG(DISTINCT p.first_name || ' ' || p.last_name, ', ') AS instructor_names,
+    LISTAGG(DISTINCT p.email, ', ') AS instructor_emails
 FROM CDM_LMS.COURSE_ITEM ci
 INNER JOIN CDM_LMS.COURSE c 
     ON ci.course_id = c.id
